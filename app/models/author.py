@@ -18,3 +18,5 @@ class Author(db.Model): # author inherits from db.Model from SQLAlchemy
             name=author_data["name"]
             )
         return new_author
+
+
