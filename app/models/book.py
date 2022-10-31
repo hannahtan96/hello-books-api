@@ -1,4 +1,3 @@
-from hashlib import new
 from app import db
 
 class Book(db.Model): # book inherits from db.Model from SQLAlchemy
