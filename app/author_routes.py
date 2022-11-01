@@ -18,6 +18,11 @@ def create_author():
     return make_response(jsonify(f"Author {new_author.name} successfully created"), 201)
 
 
+@authors_bp.route("/<author_id>", methods=["GET"])
+def read_one_author(author_id):
+    author = validate_model(Author, author_id)
+    return author.to_dict()
+
 @authors_bp.route("", methods=["GET"])
 def read_all_authors():
 

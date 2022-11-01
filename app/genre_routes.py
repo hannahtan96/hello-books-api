@@ -42,14 +42,20 @@ def create_book(genre_id):
     new_book = Book(
         title = request_body["title"],
         description = request_body["description"],
-        author = request_body["author_id"],
+        author_id = request_body["author_id"],
         genres=[chosen_genre]
     )
 
     db.session.add(new_book)
-    db.sesson.commit()
-    return jsonify({"msg": f"Book {new_book.title} by {new_book.author} successfully created"}), 201
+    db.session.commit()
+    return jsonify({"msg": f"Book {new_book.title} by {new_book.author.name} successfully created"}), 201
 
+
+@genres_bp.route("/<genre_id>", methods=["GET"])
+def get_one_genre(genre_id): # question: why don't we need to do the make_response({}, 200)
+    genre = validate_model(Genre, genre_id)
+    return genre.to_dict()
+    
 
 @genres_bp.route("/<genre_id>/books", methods=["GET"])
 def read_all_books(genre_id):
@@ -60,3 +66,13 @@ def read_all_books(genre_id):
         books_response.append(book.to_dict())
 
     return jsonify(books_response), 200
+
+
+@genres_bp.route("/<genre_id>", methods=["DELETE"])
+def delete_genre(genre_id):
+    genre = validate_model(Book, genre_id)
+
+    db.session.delete(genre)
+    db.session.commit()
+
+    return make_response(jsonify(f"Genre #{genre.id} successfully deleted"))
