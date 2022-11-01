@@ -1,6 +1,5 @@
 import json
 from app import db
-from app import book_routes
 from app.models.book import Book
 from app.models.genre import Genre
 from app.book_routes import validate_model

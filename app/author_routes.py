@@ -2,7 +2,7 @@ from app import db
 from app.book_routes import validate_model
 from app.models.book import Book
 from app.models.author import Author
-from flask import Blueprint, make_response, request, jsonify, abort
+from flask import abort, Blueprint, jsonify, make_response, request
 
 authors_bp = Blueprint("authors_bp", __name__,url_prefix="/authors")
 
