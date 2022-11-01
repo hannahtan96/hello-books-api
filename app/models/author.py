@@ -6,11 +6,10 @@ class Author(db.Model): # author inherits from db.Model from SQLAlchemy
     books = db.relationship("Book", back_populates="author")
 
     def to_dict(self):
-        author_as_dict = {}
-        author_as_dict["id"] = self.id
-        author_as_dict["name"] = self.name
-
-        return author_as_dict
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
     @classmethod
     def from_dict(cls, author_data):
