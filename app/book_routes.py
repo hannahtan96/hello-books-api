@@ -18,29 +18,21 @@ def validate_model(cls, model_id):
         abort(make_response({"message": f"{cls.__name__} {model_id} not found"}, 404))
     return model
 
-
-@books_bp.route("", methods=["POST"])
-def create_book():
-    # use request object info on the http request
-    # request.get_json() will "pythonify" the JSON HTTP request body by converting it into a Python dictionary
-    request_body = request.get_json()
-    author_name = request_body["author"]
-
-    # handle creation of new author instance if author do not currently exist
-    chosen_author = Author.query.filter(Author.name==author_name).first()
+# handle creation of new author instance if author do not currently exist
+def return_author_from_name(author):
+    chosen_author = Author.query.filter(Author.name==author).first()
     if chosen_author is None:
-        new_author = Author.from_dict({"name":author_name})
+        new_author = Author.from_dict({"name":author})
         
         db.session.add(new_author)
         db.session.commit()
-        
-        output_author = new_author
-
+        return new_author
     else:
-        output_author = chosen_author
+        return chosen_author
 
-    # handle creation of new genre instance(s) if any genre does not currently exist
-    genre_names = request_body["genres"]
+
+# handle creation of new genre instance(s) if any genre does not currently exist
+def return_genres_from_genre_names(genre_names):
     list_of_genres = []
     for genre_name in genre_names:
         chosen_genre = Genre.query.filter(Genre.name==genre_name).first()
@@ -49,25 +41,36 @@ def create_book():
 
             db.session.add(new_genre)
             db.session.commit()
-
             list_of_genres.append(new_genre)
-            
         else:
             list_of_genres.append(chosen_genre)
 
-    output_genres = list_of_genres
+    return list_of_genres
 
-    new_book = Book(
-        title=request_body["title"],
-        description=request_body["description"],
-        author=output_author,
-        genres=output_genres
-        )
+
+@books_bp.route("", methods=["POST"])
+def create_book():
+    # use request object info on the http request
+    # request.get_json() will "pythonify" the JSON HTTP request body by converting it into a Python dictionary
+    request_body = request.get_json()
     
-    db.session.add(new_book)
-    db.session.commit()
+    try:
+        author = return_author_from_name(request_body["author"])
+        list_of_genres = return_genres_from_genre_names(request_body["genres"])
 
-    return make_response(jsonify(f"Book {new_book.title} successfully created"), 201)
+        new_book = Book(
+            title=request_body["title"],
+            description=request_body["description"],
+            author=author,
+            genres=list_of_genres
+            )
+        
+        db.session.add(new_book)
+        db.session.commit()
+    except KeyError:
+        return jsonify({"msg": "Missing book data"}), 400
+
+    return jsonify(f"Book {new_book.title} successfully created"), 201
 
 
 @books_bp.route("", methods=["GET"])
@@ -97,8 +100,8 @@ def update_book(book_id):
     request_body = request.get_json()
     book.title = request_body["title"]
     book.description = request_body["description"]
-    book.author = request_body["author"]
-    book.genres = request_body["genres"]
+    book.author = return_author_from_name(request_body["author"])
+    book.genres = return_genres_from_genre_names(request_body["genres"])
 
     db.session.commit()
     return make_response(jsonify(f"Book #{book.id} successfully updated"))

@@ -1,5 +1,5 @@
 from app import db
-from app.book_routes import validate_model
+from app.book_routes import validate_model, return_genres_from_genre_names
 from app.models.book import Book
 from app.models.author import Author
 from flask import abort, Blueprint, jsonify, make_response, request
@@ -47,22 +47,24 @@ def update_book(author_id):
     return make_response(jsonify(f"Author #{author.id} successfully updated"))
 
 
-
 @authors_bp.route("/<author_id>/books", methods=["POST"])
 def create_book(author_id):
 
     author = validate_model(Author, author_id)
 
     request_body = request.get_json()
-    new_book = Book(
-        title = request_body["title"],
-        description = request_body["description"],
-        author = author,
-        genres = []
-    )
+    try:
+        new_book = Book(
+            title = request_body["title"],
+            description = request_body["description"],
+            author = author,
+            genres = return_genres_from_genre_names(request_body["genres"])
+        )
 
-    db.session.add(new_book)
-    db.session.commit()
+        db.session.add(new_book)
+        db.session.commit()
+    except KeyError:
+        return jsonify({"msg": "Missing book data"}), 400
 
     return make_response(jsonify(f"Book {new_book.title} by {new_book.author.name} successfully created"), 201)
 

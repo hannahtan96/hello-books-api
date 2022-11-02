@@ -2,7 +2,7 @@ from app import db
 from app.models.book import Book
 from app.models.genre import Genre
 from app.models.book_genre import BookGenre
-from app.book_routes import validate_model
+from app.book_routes import validate_model, return_author_from_name
 from flask import abort, Blueprint, jsonify, make_response, request
 
 genres_bp = Blueprint("genres_bp", __name__,url_prefix="/genres")
@@ -27,10 +27,7 @@ def get_all_genres():
     else:
         genres = Genre.query.all()
 
-    genres_response = []
-    for genre in genres:
-        genres_response.append(genre.to_dict())
-    
+    genres_response = [genre.to_dict() for genre in genres]
     return jsonify(genres_response), 200
 
 
@@ -39,15 +36,20 @@ def create_book(genre_id):
     chosen_genre = validate_model(Genre, genre_id)
 
     request_body = request.get_json()
-    new_book = Book(
-        title = request_body["title"],
-        description = request_body["description"],
-        author_id = request_body["author_id"],
-        genres=[chosen_genre]
-    )
 
-    db.session.add(new_book)
-    db.session.commit()
+    try:
+        new_book = Book(
+            title = request_body["title"],
+            description = request_body["description"],
+            author = return_author_from_name(request_body["author"]),
+            genres=[chosen_genre]
+        )
+
+        db.session.add(new_book)
+        db.session.commit()
+    except KeyError:
+        return jsonify({"msg": "Missing book data"}), 400
+
     return jsonify({"msg": f"Book {new_book.title} by {new_book.author.name} successfully created"}), 201
 
 
