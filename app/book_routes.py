@@ -93,15 +93,19 @@ def read_one_book(book_id): # question: why don't we need to do the make_respons
     return book.to_dict()
 
 
-@books_bp.route("/<book_id>", methods=["PUT"])
+@books_bp.route("/<book_id>", methods=["PUT", "PATCH"])
 def update_book(book_id):
     book = validate_model(Book, book_id)
 
     request_body = request.get_json()
-    book.title = request_body["title"]
-    book.description = request_body["description"]
-    book.author = return_author_from_name(request_body["author"])
-    book.genres = return_genres_from_genre_names(request_body["genres"])
+    if request_body["title"]:
+        book.title = request_body["title"]
+    if request_body["description"]:
+        book.description = request_body["description"]
+    if request_body["author"]:
+        book.author = return_author_from_name(request_body["author"])
+    if request_body["genres"]:
+        book.genres = return_genres_from_genre_names(request_body["genres"])
 
     db.session.commit()
     return make_response(jsonify(f"Book #{book.id} successfully updated"))
