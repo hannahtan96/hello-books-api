@@ -32,11 +32,20 @@ def read_all_authors():
     else:
         authors = Author.query.all()
 
-    authors_response = []
-    for author in authors:
-        authors_response.append(author.to_dict())
-    
+    authors_response = [author.to_dict for author in authors]
     return jsonify(authors_response)
+
+
+@authors_bp.route("/<author_id>", methods=["PUT"])
+def update_book(author_id):
+    author = validate_model(Author, author_id)
+
+    request_body = request.get_json()
+    author.name = request_body["name"]
+
+    db.session.commit()
+    return make_response(jsonify(f"Author #{author.id} successfully updated"))
+
 
 
 @authors_bp.route("/<author_id>/books", methods=["POST"])
@@ -48,7 +57,8 @@ def create_book(author_id):
     new_book = Book(
         title = request_body["title"],
         description = request_body["description"],
-        author = author
+        author = author,
+        genres = []
     )
 
     db.session.add(new_book)
@@ -63,8 +73,5 @@ def read_all_books(author_id):
     author = validate_model(Author, author_id)
     books = Book.query.filter_by(author=author)
 
-    books_response = []
-    for book in books:
-        books_response.append(book.to_dict())
-    
+    books_response = [book.to_dict() for book in books]
     return jsonify(books_response)

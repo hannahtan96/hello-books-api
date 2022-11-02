@@ -28,6 +28,7 @@ class Book(db.Model): # book inherits from db.Model from SQLAlchemy
     def from_dict(cls, book_data):
         new_book = Book(
             title=book_data["title"], 
-            description=book_data["description"]
-            )
+            description=book_data["description"],
+            author = book_data["author"],
+            genres = book_data["genres"])
         return new_book

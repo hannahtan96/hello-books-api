@@ -1,9 +1,9 @@
-import json
 from app import db
 from app.models.book import Book
 from app.models.genre import Genre
+from app.models.book_genre import BookGenre
 from app.book_routes import validate_model
-from flask import Blueprint, make_response, request, jsonify, abort
+from flask import abort, Blueprint, jsonify, make_response, request
 
 genres_bp = Blueprint("genres_bp", __name__,url_prefix="/genres")
 
@@ -60,11 +60,9 @@ def get_one_genre(genre_id): # question: why don't we need to do the make_respon
 @genres_bp.route("/<genre_id>/books", methods=["GET"])
 def read_all_books(genre_id):
     genre = validate_model(Genre, genre_id)
+    books = Book.query.filter(Book.genres.contains(genre))
 
-    books_response = []
-    for book in genre.books:
-        books_response.append(book.to_dict())
-
+    books_response = [book.to_dict() for book in books]
     return jsonify(books_response), 200
 
 
