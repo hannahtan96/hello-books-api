@@ -70,7 +70,7 @@ def create_book():
     except KeyError:
         return jsonify({"msg": "Missing book data"}), 400
 
-    return jsonify(f"Book {new_book.title} successfully created"), 201
+    return jsonify(f"Book {new_book.title} by {new_book.author.name} successfully created"), 201
 
 
 @books_bp.route("", methods=["GET"])
@@ -84,13 +84,13 @@ def read_all_books():
         books = Book.query.all()
 
     books_response = [book.to_dict() for book in books]
-    return jsonify(books_response) # why are we not using the make_response(jsonify(book_response), 200)
+    return jsonify(books_response), 200
 
 
 @books_bp.route("/<book_id>", methods=["GET"])
-def read_one_book(book_id): # question: why don't we need to do the make_response({}, 200)
+def read_one_book(book_id):
     book = validate_model(Book, book_id)
-    return book.to_dict()
+    return jsonify(book.to_dict()), 200
 
 
 @books_bp.route("/<book_id>", methods=["PUT", "PATCH"])
@@ -108,7 +108,7 @@ def update_book(book_id):
         book.genres = return_genres_from_genre_names(request_body["genres"])
 
     db.session.commit()
-    return make_response(jsonify(f"Book #{book.id} successfully updated"))
+    return jsonify(f"Book #{book.id} successfully updated"), 204
 
 
 @books_bp.route("/<book_id>", methods=["DELETE"])
@@ -118,7 +118,7 @@ def delete_book(book_id):
     db.session.delete(book)
     db.session.commit()
 
-    return make_response(jsonify(f"Book #{book.id} successfully deleted"))
+    return jsonify(f"Book #{book.id} successfully deleted"), 202
 
 
 

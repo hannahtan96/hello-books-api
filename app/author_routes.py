@@ -15,13 +15,13 @@ def create_author():
     db.session.add(new_author)
     db.session.commit()
 
-    return make_response(jsonify(f"Author {new_author.name} successfully created"), 201)
+    return jsonify(f"Author {new_author.name} successfully created"), 201
 
 
 @authors_bp.route("/<author_id>", methods=["GET"])
 def read_one_author(author_id):
     author = validate_model(Author, author_id)
-    return author.to_dict()
+    return jsonify(author.to_dict()), 200
 
 @authors_bp.route("", methods=["GET"])
 def read_all_authors():
@@ -33,7 +33,7 @@ def read_all_authors():
         authors = Author.query.all()
 
     authors_response = [author.to_dict for author in authors]
-    return jsonify(authors_response)
+    return jsonify(authors_response), 200
 
 
 @authors_bp.route("/<author_id>", methods=["PUT"])
@@ -44,7 +44,7 @@ def update_book(author_id):
     author.name = request_body["name"]
 
     db.session.commit()
-    return make_response(jsonify(f"Author #{author.id} successfully updated"))
+    return jsonify(f"Author #{author.id} successfully updated"), 204
 
 
 @authors_bp.route("/<author_id>/books", methods=["POST"])
@@ -66,7 +66,7 @@ def create_book(author_id):
     except KeyError:
         return jsonify({"msg": "Missing book data"}), 400
 
-    return make_response(jsonify(f"Book {new_book.title} by {new_book.author.name} successfully created"), 201)
+    return jsonify(f"Book {new_book.title} by {new_book.author.name} successfully created"), 201
 
 
 @authors_bp.route("/<author_id>/books", methods=["GET"])

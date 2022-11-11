@@ -75,4 +75,4 @@ def delete_genre(genre_id):
     db.session.delete(genre)
     db.session.commit()
 
-    return make_response(jsonify(f"Genre #{genre.id} successfully deleted"))
+    return mjsonify(f"Genre #{genre.id} successfully deleted"), 202
